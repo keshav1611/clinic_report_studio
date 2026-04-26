@@ -19,6 +19,7 @@ const PDF_PAGE_HEIGHT = 841.89;
 const PDF_MARGIN = 45;
 const REPORT_WIDTH = PDF_PAGE_WIDTH;
 const REPORT_HEIGHT = PDF_PAGE_HEIGHT;
+const REQUIRED_DETAIL_FIELDS = ['name', 'age', 'address', 'examDate'];
 
 const samplePatient = {
   id: crypto.randomUUID(),
@@ -109,10 +110,20 @@ function renderPatientList() {
   return patients
     .map((patient) => {
       const isActive = patient.id === selectedPatientId ? 'active' : '';
+      const completion = reportCompletion(patient);
       return `
         <button class="patient-row ${isActive}" data-patient-id="${patient.id}">
-          <strong>${escapeHtml(patient.name || 'Unnamed patient')}</strong>
-          <span>${escapeHtml(patient.age || '-')} years</span>
+          <span class="patient-row-main">
+            <strong>${escapeHtml(patient.name || 'Unnamed patient')}</strong>
+            <span>${escapeHtml(patient.age || '-')} years</span>
+          </span>
+          <span class="patient-row-meta">
+            <span>${completion.completed}/${completion.total} complete</span>
+            <span>${patient.images.length}/4 images</span>
+          </span>
+          <span class="progress-meter" aria-hidden="true">
+            <span style="width: ${completion.percent}%"></span>
+          </span>
         </button>
       `;
     })
@@ -120,13 +131,21 @@ function renderPatientList() {
 }
 
 function renderEditor(patient) {
+  const completion = reportCompletion(patient);
+  const findingCount = completedFindingsCount(patient);
+
   return `
     <div class="editor-header">
       <div>
         <p class="eyebrow">Current report</p>
         <h2>${escapeHtml(patient.name || 'Unnamed patient')}</h2>
+        <div class="report-status" aria-label="Report status">
+          <span>${completion.completed}/${completion.total} complete</span>
+          <span>${findingCount}/${reportFields.length} findings</span>
+          <span>${patient.images.length}/4 images</span>
+        </div>
       </div>
-      <button class="danger-button" data-action="delete-patient">Delete</button>
+      <button class="danger-button subtle-danger" data-action="delete-patient">Delete patient</button>
     </div>
 
     <nav class="tabs" aria-label="Report sections">
@@ -144,7 +163,7 @@ function renderEditor(patient) {
 
 function renderTabButton(tab, label) {
   return `
-    <button class="tab-button ${activeTab === tab ? 'active' : ''}" data-tab="${tab}">
+    <button class="tab-button ${activeTab === tab ? 'active' : ''}" data-tab="${tab}" ${activeTab === tab ? 'aria-current="page"' : ''}>
       ${label}
     </button>
   `;
@@ -176,7 +195,7 @@ function renderDetails(patient) {
         Examination date
         <input name="examDate" type="date" value="${escapeAttribute(patient.examDate || todayInputValue())}" />
       </label>
-      <div class="form-actions wide">
+      <div class="form-actions sticky-actions wide">
         <button class="primary-button" type="submit">Save Details</button>
       </div>
     </form>
@@ -206,7 +225,7 @@ function renderFindings(patient) {
         Advice
         <textarea name="advice" rows="3">${escapeHtml(patient.advice || '')}</textarea>
       </label>
-      <div class="form-actions">
+      <div class="form-actions sticky-actions wide">
         <button class="primary-button" type="submit">Save Findings</button>
       </div>
     </form>
@@ -220,8 +239,8 @@ function renderImages(patient) {
     <div class="image-tools">
       <label class="upload-zone ${remaining === 0 ? 'disabled' : ''}">
         <input type="file" accept="image/*" multiple ${remaining === 0 ? 'disabled' : ''} />
-        <span>Add Images</span>
-        <small>${remaining} slot${remaining === 1 ? '' : 's'} remaining</small>
+        <span>${remaining === 0 ? 'Image slots full' : 'Add Images'}</span>
+        <small>${remaining === 0 ? 'Remove one to add another' : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`}</small>
       </label>
     </div>
     <div class="image-grid">
@@ -244,6 +263,25 @@ function renderImages(patient) {
       }
     </div>
   `;
+}
+
+function completedFindingsCount(patient) {
+  return reportFields.filter((field) => Boolean(patient.findings?.[field]?.trim())).length;
+}
+
+function reportCompletion(patient) {
+  const detailCount = REQUIRED_DETAIL_FIELDS.filter((field) => Boolean(patient[field]?.trim())).length;
+  const findingCount = completedFindingsCount(patient);
+  const extrasCount = [patient.diagnosis, patient.advice].filter((value) => Boolean(value?.trim())).length;
+  const imageCount = Math.min(patient.images.length, 4);
+  const completed = detailCount + findingCount + extrasCount + imageCount;
+  const total = REQUIRED_DETAIL_FIELDS.length + reportFields.length + 2 + 4;
+
+  return {
+    completed,
+    total,
+    percent: Math.round((completed / total) * 100),
+  };
 }
 
 function renderReport(patient) {

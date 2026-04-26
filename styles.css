@@ -7,8 +7,10 @@
   --soft: #f4f7f9;
   --accent: #0f766e;
   --accent-strong: #115e59;
+  --accent-soft: #e7f3f1;
   --danger: #b42318;
   --shadow: 0 18px 48px rgba(31, 41, 51, 0.12);
+  --shadow-soft: 0 10px 28px rgba(31, 41, 51, 0.08);
   --report-width: 595.28px;
   --report-height: 841.89px;
   --report-padding: 45px;
@@ -21,7 +23,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #eef3f5;
+  background: #edf3f4;
   color: var(--ink);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -36,11 +38,21 @@ textarea {
 
 button {
   cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
 }
 
 button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
 }
 
 .topbar {
@@ -96,6 +108,7 @@ button:disabled {
 .primary-button {
   background: var(--accent);
   color: white;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
 }
 
 .primary-button:hover {
@@ -112,6 +125,11 @@ button:disabled {
   background: #fff1f0;
   color: var(--danger);
   border-color: #ffcdc8;
+}
+
+.subtle-danger {
+  min-height: 38px;
+  background: transparent;
 }
 
 .workspace {
@@ -131,7 +149,10 @@ button:disabled {
 }
 
 .patient-panel {
+  align-self: start;
   padding: 18px;
+  position: sticky;
+  top: 18px;
 }
 
 .panel-heading,
@@ -162,7 +183,7 @@ button:disabled {
 .patient-row {
   display: grid;
   width: 100%;
-  gap: 4px;
+  gap: 10px;
   padding: 14px;
   text-align: left;
   background: var(--soft);
@@ -178,8 +199,46 @@ button:disabled {
 }
 
 .patient-row.active {
-  background: #e8f3f1;
+  background: var(--accent-soft);
   border-color: #99c9c3;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.patient-row-main,
+.patient-row-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.patient-row-main strong,
+.patient-row-main span,
+.patient-row-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patient-row-meta {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.progress-meter {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dbe5e8;
+}
+
+.progress-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
 }
 
 .editor-panel {
@@ -200,6 +259,7 @@ button:disabled {
 }
 
 .tab-button {
+  flex: 1;
   background: transparent;
   color: var(--muted);
 }
@@ -208,6 +268,7 @@ button:disabled {
   background: var(--paper);
   color: var(--accent-strong);
   border-color: var(--line);
+  box-shadow: var(--shadow-soft);
 }
 
 .tab-surface {
@@ -265,7 +326,37 @@ textarea:focus {
   text-align: center;
 }
 
+.report-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.report-status span {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  border: 1px solid #cfe0df;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #f3faf8;
+  color: #315c59;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 6px -4px -4px;
+  padding: 10px 4px 4px;
+  background: linear-gradient(rgba(255, 255, 255, 0), var(--paper) 30%);
+}
+
 .upload-zone {
+  display: grid;
   min-height: 118px;
   width: min(100%, 420px);
   place-items: center;
@@ -284,7 +375,9 @@ textarea:focus {
 }
 
 .upload-zone.disabled {
-  filter: grayscale(1);
+  background: #f8fafb;
+  border-color: #cdd6df;
+  color: #4c596a;
 }
 
 .image-grid {
@@ -312,6 +405,8 @@ textarea:focus {
 
 .image-tile figcaption {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 8px;
   padding: 10px;
 }
@@ -442,6 +537,10 @@ textarea:focus {
     padding: 16px;
   }
 
+  .patient-panel {
+    position: static;
+  }
+
   .patient-panel,
   .editor-panel {
     min-height: auto;
@@ -464,8 +563,7 @@ textarea:focus {
     flex-wrap: wrap;
   }
 
-  .topbar-actions > button,
-  .tab-button {
+  .topbar-actions > button {
     flex: 1;
   }
 
@@ -480,6 +578,29 @@ textarea:focus {
 
   .tab-surface {
     padding: 16px;
+  }
+
+  .tabs {
+    padding: 10px 16px;
+  }
+
+  .tab-button {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 130px;
+  }
+
+  .sticky-actions {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .sticky-actions .primary-button {
+    width: 100%;
+  }
+
+  .image-tile figcaption {
+    grid-template-columns: 1fr;
   }
 }
 
