@@ -487,7 +487,7 @@ textarea:focus {
 
 @page {
   size: A4;
-  margin: 10mm;
+  margin: 0;
 }
 
 @media print {
@@ -495,7 +495,7 @@ textarea:focus {
   body {
     background: white;
     min-width: 0;
-    width: auto;
+    width: 210mm;
   }
 
   .topbar,
@@ -509,6 +509,7 @@ textarea:focus {
   .editor-panel,
   .tab-surface {
     display: block;
+    width: 210mm;
     padding: 0;
     margin: 0;
     border: 0;
@@ -524,11 +525,11 @@ textarea:focus {
   .report-sheet {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    min-height: 277mm;
+    width: 210mm;
+    min-height: 297mm;
     max-width: none;
     margin: 0;
-    padding: 4mm 2mm 2mm;
+    padding: 14.8mm 14.3mm 12.2mm;
     border: 0;
     box-shadow: none;
     page-break-after: avoid;
@@ -545,40 +546,40 @@ textarea:focus {
   .report-body {
     display: grid;
     flex: 1;
-    grid-template-columns: minmax(0, 1fr) 58mm;
-    gap: 7mm;
-    margin-top: 4mm;
+    grid-template-columns: minmax(0, 1fr) 50.3mm;
+    gap: 6.4mm;
+    margin-top: 3.2mm;
   }
 
   .report-images {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 3mm;
+    gap: 3.2mm;
     align-content: start;
     margin-top: 0;
   }
 
   .report-images img {
-    width: 56mm;
-    height: 40mm;
+    width: 48.2mm;
+    height: 36mm;
     object-fit: cover;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   .report-images.image-count-1 img {
-    height: 52mm;
+    height: 40.7mm;
   }
 
   .report-images.image-count-2 img {
-    height: 46mm;
+    height: 38.6mm;
   }
 
   .report-images.image-count-3 img {
-    height: 41mm;
+    height: 34.9mm;
   }
 
   .report-images.image-count-4 img {
-    height: 30mm;
+    height: 31.2mm;
   }
 }
