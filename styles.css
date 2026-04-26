@@ -331,18 +331,18 @@ textarea:focus {
 
 .report-preview-frame {
   --preview-scale: 1;
-  width: 794px;
-  height: 1123px;
+  width: 816px;
+  height: 1056px;
   margin: 0 auto;
 }
 
 .report-sheet {
   display: flex;
   flex-direction: column;
-  width: 794px;
-  min-height: 1123px;
+  width: 816px;
+  min-height: 1056px;
   margin: 0;
-  padding: 56px 54px 46px;
+  padding: 48px 54px 40px;
   background: white;
   border: 1px solid #d9dee6;
   box-shadow: 0 16px 42px rgba(31, 41, 51, 0.14);
@@ -486,7 +486,7 @@ textarea:focus {
 }
 
 @page {
-  size: A4;
+  size: letter;
   margin: 0;
 }
 
@@ -495,7 +495,7 @@ textarea:focus {
   body {
     background: white;
     min-width: 0;
-    width: 210mm;
+    width: 816px;
   }
 
   .topbar,
@@ -509,7 +509,7 @@ textarea:focus {
   .editor-panel,
   .tab-surface {
     display: block;
-    width: 210mm;
+    width: 816px;
     padding: 0;
     margin: 0;
     border: 0;
@@ -525,11 +525,11 @@ textarea:focus {
   .report-sheet {
     display: flex;
     flex-direction: column;
-    width: 210mm;
-    min-height: 297mm;
+    width: 816px;
+    min-height: 1056px;
     max-width: none;
     margin: 0;
-    padding: 14.8mm 14.3mm 12.2mm;
+    padding: 48px 54px 40px;
     border: 0;
     box-shadow: none;
     page-break-after: avoid;
@@ -540,46 +540,46 @@ textarea:focus {
   .report-meta {
     display: flex;
     justify-content: space-between;
-    gap: 8mm;
+    gap: 28px;
   }
 
   .report-body {
     display: grid;
     flex: 1;
-    grid-template-columns: minmax(0, 1fr) 50.3mm;
-    gap: 6.4mm;
-    margin-top: 3.2mm;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 24px;
+    margin-top: 12px;
   }
 
   .report-images {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 3.2mm;
+    gap: 12px;
     align-content: start;
     margin-top: 0;
   }
 
   .report-images img {
-    width: 48.2mm;
-    height: 36mm;
+    width: 182px;
+    height: 136px;
     object-fit: cover;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   .report-images.image-count-1 img {
-    height: 40.7mm;
+    height: 154px;
   }
 
   .report-images.image-count-2 img {
-    height: 38.6mm;
+    height: 146px;
   }
 
   .report-images.image-count-3 img {
-    height: 34.9mm;
+    height: 132px;
   }
 
   .report-images.image-count-4 img {
-    height: 31.2mm;
+    height: 118px;
   }
 }
