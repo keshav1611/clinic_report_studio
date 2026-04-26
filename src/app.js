@@ -14,11 +14,11 @@ const reportFields = [
 ];
 
 const blankFindings = Object.fromEntries(reportFields.map((field) => [field, '']));
-const REPORT_WIDTH = 816;
-const REPORT_HEIGHT = 1056;
 const PDF_PAGE_WIDTH = 595.28;
 const PDF_PAGE_HEIGHT = 841.89;
 const PDF_MARGIN = 45;
+const REPORT_WIDTH = PDF_PAGE_WIDTH;
+const REPORT_HEIGHT = PDF_PAGE_HEIGHT;
 
 const samplePatient = {
   id: crypto.randomUUID(),
@@ -252,7 +252,6 @@ function renderReport(patient) {
       <article class="report-sheet" id="report-sheet">
         <header class="report-doctor">
           <h2>Dr. Sujeet Kumar Jethaliya</h2>
-          <p>Video Laryngoscopy / Fibre Optics Laryngoscopy Report</p>
         </header>
 
         <section class="report-meta">
@@ -263,6 +262,8 @@ function renderReport(patient) {
           </div>
           <p><strong>Date:</strong> ${formatDate(patient.examDate)}</p>
         </section>
+
+        <p class="report-title">Video Laryngoscopy / Fibre Optics Laryngoscopy report</p>
 
         <section class="report-body">
           <div class="report-findings">
