@@ -502,6 +502,13 @@ textarea:focus {
     width: 8.5in;
     height: 11in;
     margin: 0;
+    overflow: visible;
+  }
+
+  #app {
+    width: 8.5in;
+    height: 11in;
+    overflow: visible;
   }
 
   .topbar,
@@ -523,9 +530,10 @@ textarea:focus {
   }
 
   .report-preview-frame {
-    width: auto;
-    height: auto;
-    margin: 0;
+    width: 7.35in;
+    height: 9.5in;
+    margin: 0.18in auto 0;
+    overflow: hidden;
   }
 
   .report-sheet {
@@ -538,9 +546,11 @@ textarea:focus {
     padding: var(--report-padding);
     border: 0;
     box-shadow: none;
+    break-after: avoid;
     page-break-after: avoid;
     overflow: hidden;
-    transform: none;
+    transform: scale(0.8647);
+    transform-origin: top left;
   }
 
   .report-meta {
