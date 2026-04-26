@@ -495,6 +495,12 @@ textarea:focus {
 }
 
 @media print {
+  :root {
+    --report-width: 7.35in;
+    --report-height: 9.5in;
+    --report-padding: 41px 47px 35px;
+  }
+
   html,
   body {
     background: white;
@@ -533,14 +539,14 @@ textarea:focus {
     width: 7.35in;
     height: 9.5in;
     margin: 0.18in auto 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .report-sheet {
     display: flex;
     flex-direction: column;
-    width: 8.5in;
-    height: 11in;
+    width: var(--report-width);
+    height: var(--report-height);
     max-width: none;
     margin: 0;
     padding: var(--report-padding);
@@ -549,53 +555,82 @@ textarea:focus {
     break-after: avoid;
     page-break-after: avoid;
     overflow: hidden;
-    transform: scale(0.8647);
-    transform-origin: top left;
+    transform: none;
   }
 
   .report-meta {
     display: flex;
     justify-content: space-between;
-    gap: 28px;
+    gap: 24px;
+    font-size: 13px;
   }
 
   .report-body {
     display: grid;
     flex: 1;
-    grid-template-columns: minmax(0, 1fr) 190px;
-    gap: 24px;
-    margin-top: 12px;
+    grid-template-columns: minmax(0, 1fr) 164px;
+    gap: 21px;
+    margin-top: 10px;
+  }
+
+  .report-doctor h2 {
+    font-size: 19px;
+  }
+
+  .report-doctor p {
+    margin: 19px 0 24px;
+    font-size: 16px;
+  }
+
+  .report-meta p,
+  .report-findings p,
+  .report-footer p {
+    margin: 0 0 10px;
+  }
+
+  .report-findings {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .report-space {
+    min-height: 50px;
+    padding-top: 12px;
   }
 
   .report-images {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
     align-content: start;
     margin-top: 0;
   }
 
   .report-images img {
-    width: 182px;
-    height: 136px;
+    width: 157px;
+    height: 118px;
     object-fit: cover;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   .report-images.image-count-1 img {
-    height: 154px;
+    height: 133px;
   }
 
   .report-images.image-count-2 img {
-    height: 146px;
+    height: 126px;
   }
 
   .report-images.image-count-3 img {
-    height: 132px;
+    height: 114px;
   }
 
   .report-images.image-count-4 img {
-    height: 118px;
+    height: 102px;
+  }
+
+  .report-footer {
+    font-size: 13px;
   }
 }
