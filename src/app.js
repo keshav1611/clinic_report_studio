@@ -582,8 +582,9 @@ async function buildReportPdf(patient) {
   y -= 70;
   drawLabelValue(content, 'Advice:', patient.advice || '', findingX, y, 15);
 
-  drawText(content, 'Dr. S. K. Jethaliya', page.width - page.margin - 125, page.margin + 28, 15, 'F1');
-  drawText(content, 'MBBS, MS', page.width - page.margin - 70, page.margin + 10, 15, 'F1');
+  const footerX = page.width - page.margin - 150;
+  drawCenteredTextInBox(content, 'Dr. S. K. Jethaliya', footerX, page.margin + 28, 15, 'F1', 150);
+  drawCenteredTextInBox(content, 'MBBS, MS', footerX, page.margin + 10, 15, 'F1', 150);
 
   pdf.addPage(content.join('\n'), imageIds);
   return pdf.build();
@@ -631,6 +632,11 @@ function drawText(commands, text, x, y, size, font = 'F1') {
 function drawCenteredText(commands, text, y, size, font, pageWidth) {
   const x = (pageWidth - estimateTextWidth(text, size)) / 2;
   drawText(commands, text, x, y, size, font);
+}
+
+function drawCenteredTextInBox(commands, text, x, y, size, font, width) {
+  const textX = x + (width - estimateTextWidth(text, size)) / 2;
+  drawText(commands, text, textX, y, size, font);
 }
 
 function drawLabelValue(commands, label, value, x, y, size) {
