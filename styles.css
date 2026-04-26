@@ -329,18 +329,27 @@ textarea:focus {
   border-color: #ffd7d2;
 }
 
+.report-preview-frame {
+  --preview-scale: 1;
+  width: 794px;
+  height: 1123px;
+  margin: 0 auto;
+}
+
 .report-sheet {
   display: flex;
   flex-direction: column;
-  width: min(100%, 794px);
+  width: 794px;
   min-height: 1123px;
-  margin: 0 auto;
+  margin: 0;
   padding: 56px 54px 46px;
   background: white;
   border: 1px solid #d9dee6;
   box-shadow: 0 16px 42px rgba(31, 41, 51, 0.14);
   color: #111827;
   font-family: "Times New Roman", Times, serif;
+  transform: scale(var(--preview-scale));
+  transform-origin: top left;
 }
 
 .report-doctor {
@@ -506,6 +515,12 @@ textarea:focus {
     box-shadow: none;
   }
 
+  .report-preview-frame {
+    width: auto;
+    height: auto;
+    margin: 0;
+  }
+
   .report-sheet {
     display: flex;
     flex-direction: column;
@@ -518,6 +533,7 @@ textarea:focus {
     box-shadow: none;
     page-break-after: avoid;
     overflow: hidden;
+    transform: none;
   }
 
   .report-meta {
@@ -537,7 +553,7 @@ textarea:focus {
   .report-images {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 4mm;
+    gap: 3mm;
     align-content: start;
     margin-top: 0;
   }
@@ -563,6 +579,6 @@ textarea:focus {
   }
 
   .report-images.image-count-4 img {
-    height: 35mm;
+    height: 30mm;
   }
 }
