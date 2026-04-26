@@ -267,7 +267,7 @@ function renderReport(patient) {
           <p class="report-space"><strong>Diagnosis:</strong> ${escapeHtml(patient.diagnosis || '')}</p>
           <p class="report-space"><strong>Advice:</strong> ${escapeHtml(patient.advice || '')}</p>
         </div>
-        <div class="report-images">
+        <div class="report-images image-count-${patient.images.length}">
           ${patient.images.map((image) => `<img src="${image.dataUrl}" alt="${escapeAttribute(image.name)}" />`).join('')}
         </div>
       </section>
