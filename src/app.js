@@ -14,6 +14,8 @@ const reportFields = [
 ];
 
 const blankFindings = Object.fromEntries(reportFields.map((field) => [field, '']));
+const REPORT_WIDTH = 816;
+const REPORT_HEIGHT = 1056;
 
 const samplePatient = {
   id: crypto.randomUUID(),
@@ -324,11 +326,11 @@ function updateReportPreviewScale() {
 
   const surface = document.querySelector('.tab-surface');
   const availableWidth = surface?.clientWidth || window.innerWidth;
-  const scale = Math.min(1, availableWidth / 794);
+  const scale = Math.min(1, availableWidth / REPORT_WIDTH);
 
   frame.style.setProperty('--preview-scale', scale.toFixed(4));
-  frame.style.width = `${794 * scale}px`;
-  frame.style.height = `${1123 * scale}px`;
+  frame.style.width = `${REPORT_WIDTH * scale}px`;
+  frame.style.height = `${REPORT_HEIGHT * scale}px`;
 }
 
 async function createPatient() {
