@@ -36,6 +36,7 @@ const samplePatient = {
 let patients = [];
 let selectedPatientId = null;
 let activeTab = 'details';
+let previewResizeHandlerAttached = false;
 
 const app = document.querySelector('#app');
 
@@ -91,6 +92,7 @@ function render() {
   `;
 
   bindEvents();
+  updateReportPreviewScale();
 }
 
 function renderPatientList() {
@@ -240,43 +242,45 @@ function renderImages(patient) {
 
 function renderReport(patient) {
   return `
-    <article class="report-sheet" id="report-sheet">
-      <header class="report-doctor">
-        <h2>Dr. Sujeet Kumar Jethaliya</h2>
-        <p>Video Laryngoscopy / Fibre Optics Laryngoscopy Report</p>
-      </header>
+    <div class="report-preview-frame">
+      <article class="report-sheet" id="report-sheet">
+        <header class="report-doctor">
+          <h2>Dr. Sujeet Kumar Jethaliya</h2>
+          <p>Video Laryngoscopy / Fibre Optics Laryngoscopy Report</p>
+        </header>
 
-      <section class="report-meta">
-        <div>
-          <p><strong>Patient's name:</strong> ${escapeHtml(patient.name)}</p>
-          <p><strong>Patient's age:</strong> ${escapeHtml(patient.age)}</p>
-          <p><strong>Patient's address:</strong> ${escapeHtml(patient.address)}</p>
-        </div>
-        <p><strong>Date:</strong> ${formatDate(patient.examDate)}</p>
-      </section>
+        <section class="report-meta">
+          <div>
+            <p><strong>Patient's name:</strong> ${escapeHtml(patient.name)}</p>
+            <p><strong>Patient's age:</strong> ${escapeHtml(patient.age)}</p>
+            <p><strong>Patient's address:</strong> ${escapeHtml(patient.address)}</p>
+          </div>
+          <p><strong>Date:</strong> ${formatDate(patient.examDate)}</p>
+        </section>
 
-      <section class="report-body">
-        <div class="report-findings">
-          ${reportFields
-            .map(
-              (field) => `
-                <p><strong>${field}:</strong> ${escapeHtml(patient.findings?.[field] || '')}</p>
-              `,
-            )
-            .join('')}
-          <p class="report-space"><strong>Diagnosis:</strong> ${escapeHtml(patient.diagnosis || '')}</p>
-          <p class="report-space"><strong>Advice:</strong> ${escapeHtml(patient.advice || '')}</p>
-        </div>
-        <div class="report-images image-count-${patient.images.length}">
-          ${patient.images.map((image) => `<img src="${image.dataUrl}" alt="${escapeAttribute(image.name)}" />`).join('')}
-        </div>
-      </section>
+        <section class="report-body">
+          <div class="report-findings">
+            ${reportFields
+              .map(
+                (field) => `
+                  <p><strong>${field}:</strong> ${escapeHtml(patient.findings?.[field] || '')}</p>
+                `,
+              )
+              .join('')}
+            <p class="report-space"><strong>Diagnosis:</strong> ${escapeHtml(patient.diagnosis || '')}</p>
+            <p class="report-space"><strong>Advice:</strong> ${escapeHtml(patient.advice || '')}</p>
+          </div>
+          <div class="report-images image-count-${patient.images.length}">
+            ${patient.images.map((image) => `<img src="${image.dataUrl}" alt="${escapeAttribute(image.name)}" />`).join('')}
+          </div>
+        </section>
 
-      <footer class="report-footer">
-        <p>Dr. S. K. Jethaliya</p>
-        <p>MBBS, MS</p>
-      </footer>
-    </article>
+        <footer class="report-footer">
+          <p>Dr. S. K. Jethaliya</p>
+          <p>MBBS, MS</p>
+        </footer>
+      </article>
+    </div>
   `;
 }
 
@@ -307,6 +311,24 @@ function bindEvents() {
   document.querySelectorAll('[data-remove-image]').forEach((button) => {
     button.addEventListener('click', () => removeImage(Number(button.dataset.removeImage)));
   });
+
+  if (!previewResizeHandlerAttached) {
+    window.addEventListener('resize', updateReportPreviewScale);
+    previewResizeHandlerAttached = true;
+  }
+}
+
+function updateReportPreviewScale() {
+  const frame = document.querySelector('.report-preview-frame');
+  if (!frame) return;
+
+  const surface = document.querySelector('.tab-surface');
+  const availableWidth = surface?.clientWidth || window.innerWidth;
+  const scale = Math.min(1, availableWidth / 794);
+
+  frame.style.setProperty('--preview-scale', scale.toFixed(4));
+  frame.style.width = `${794 * scale}px`;
+  frame.style.height = `${1123 * scale}px`;
 }
 
 async function createPatient() {
