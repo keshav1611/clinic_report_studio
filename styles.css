@@ -9,6 +9,9 @@
   --accent-strong: #115e59;
   --danger: #b42318;
   --shadow: 0 18px 48px rgba(31, 41, 51, 0.12);
+  --report-width: 816px;
+  --report-height: 1056px;
+  --report-padding: 48px 54px 40px;
 }
 
 * {
@@ -331,23 +334,24 @@ textarea:focus {
 
 .report-preview-frame {
   --preview-scale: 1;
-  width: 816px;
-  height: 1056px;
+  width: var(--report-width);
+  height: var(--report-height);
   margin: 0 auto;
 }
 
 .report-sheet {
   display: flex;
   flex-direction: column;
-  width: 816px;
-  min-height: 1056px;
+  width: var(--report-width);
+  height: var(--report-height);
   margin: 0;
-  padding: 48px 54px 40px;
+  padding: var(--report-padding);
   background: white;
   border: 1px solid #d9dee6;
   box-shadow: 0 16px 42px rgba(31, 41, 51, 0.14);
   color: #111827;
   font-family: "Times New Roman", Times, serif;
+  overflow: hidden;
   transform: scale(var(--preview-scale));
   transform-origin: top left;
 }
@@ -486,7 +490,7 @@ textarea:focus {
 }
 
 @page {
-  size: letter;
+  size: 8.5in 11in;
   margin: 0;
 }
 
@@ -495,7 +499,9 @@ textarea:focus {
   body {
     background: white;
     min-width: 0;
-    width: 816px;
+    width: 8.5in;
+    height: 11in;
+    margin: 0;
   }
 
   .topbar,
@@ -509,7 +515,7 @@ textarea:focus {
   .editor-panel,
   .tab-surface {
     display: block;
-    width: 816px;
+    width: 8.5in;
     padding: 0;
     margin: 0;
     border: 0;
@@ -525,11 +531,11 @@ textarea:focus {
   .report-sheet {
     display: flex;
     flex-direction: column;
-    width: 816px;
-    min-height: 1056px;
+    width: 8.5in;
+    height: 11in;
     max-width: none;
     margin: 0;
-    padding: 48px 54px 40px;
+    padding: var(--report-padding);
     border: 0;
     box-shadow: none;
     page-break-after: avoid;

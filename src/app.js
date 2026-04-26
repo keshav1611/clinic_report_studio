@@ -39,6 +39,7 @@ let patients = [];
 let selectedPatientId = null;
 let activeTab = 'details';
 let previewResizeHandlerAttached = false;
+let printHandlerAttached = false;
 
 const app = document.querySelector('#app');
 
@@ -273,7 +274,12 @@ function renderReport(patient) {
             <p class="report-space"><strong>Advice:</strong> ${escapeHtml(patient.advice || '')}</p>
           </div>
           <div class="report-images image-count-${patient.images.length}">
-            ${patient.images.map((image) => `<img src="${image.dataUrl}" alt="${escapeAttribute(image.name)}" />`).join('')}
+            ${patient.images
+              .map(
+                (image) =>
+                  `<img src="${image.dataUrl}" alt="${escapeAttribute(image.name)}" loading="eager" decoding="sync" />`,
+              )
+              .join('')}
           </div>
         </section>
 
@@ -316,7 +322,14 @@ function bindEvents() {
 
   if (!previewResizeHandlerAttached) {
     window.addEventListener('resize', updateReportPreviewScale);
+    window.addEventListener('orientationchange', updateReportPreviewScale);
+    window.visualViewport?.addEventListener('resize', updateReportPreviewScale);
     previewResizeHandlerAttached = true;
+  }
+
+  if (!printHandlerAttached) {
+    window.addEventListener('beforeprint', prepareReportForPrint);
+    printHandlerAttached = true;
   }
 }
 
@@ -325,12 +338,18 @@ function updateReportPreviewScale() {
   if (!frame) return;
 
   const surface = document.querySelector('.tab-surface');
-  const availableWidth = surface?.clientWidth || window.innerWidth;
+  const availableWidth = surface ? contentWidth(surface) : window.innerWidth;
   const scale = Math.min(1, availableWidth / REPORT_WIDTH);
 
   frame.style.setProperty('--preview-scale', scale.toFixed(4));
   frame.style.width = `${REPORT_WIDTH * scale}px`;
   frame.style.height = `${REPORT_HEIGHT * scale}px`;
+}
+
+function contentWidth(element) {
+  const styles = getComputedStyle(element);
+  const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+  return Math.max(0, element.clientWidth - paddingX);
 }
 
 async function createPatient() {
@@ -415,10 +434,25 @@ async function removeSelectedPatient() {
   render();
 }
 
-function printReport() {
+function prepareReportForPrint() {
   activeTab = 'preview';
   render();
-  requestAnimationFrame(() => window.print());
+  updateReportPreviewScale();
+}
+
+async function printReport() {
+  prepareReportForPrint();
+
+  const printButton = document.querySelector('[data-action="print-report"]');
+  if (printButton) printButton.disabled = true;
+
+  try {
+    await nextPaint();
+    await waitForReportAssets();
+    window.print();
+  } finally {
+    if (printButton) printButton.disabled = false;
+  }
 }
 
 async function updatePatient(patient) {
@@ -445,6 +479,54 @@ function fileToImage(file) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function nextPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
+async function waitForReportAssets() {
+  const sheet = document.querySelector('#report-sheet');
+  if (!sheet) return;
+
+  const images = Array.from(sheet.querySelectorAll('img'));
+  await Promise.all([waitForFonts(), ...images.map(waitForImage)]);
+}
+
+function waitForFonts() {
+  if (!document.fonts?.ready) return Promise.resolve();
+  return withTimeout(document.fonts.ready, 1200);
+}
+
+async function waitForImage(image) {
+  if (!image.complete) {
+    await withTimeout(
+      new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      }),
+      1200,
+    );
+  }
+
+  if (!image.decode) return;
+
+  try {
+    await withTimeout(image.decode(), 1200);
+  } catch {
+    // Safari can reject decode() for already-rendered data URLs; printing can still proceed.
+  }
+}
+
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => {
+      setTimeout(resolve, timeoutMs);
+    }),
+  ]);
 }
 
 function todayInputValue() {
