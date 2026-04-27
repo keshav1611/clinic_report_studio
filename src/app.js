@@ -589,7 +589,7 @@ async function printPdf() {
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
-    printPdfBytes(pdfBytes);
+    await printPdfBytes(pdfBytes, `${patient.name || 'clinic-report'}.pdf`);
   } finally {
     if (printButton) printButton.disabled = false;
   }
@@ -798,7 +798,12 @@ function downloadPdf(bytes, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
-function printPdfBytes(bytes) {
+async function printPdfBytes(bytes, filename) {
+  if (canSharePdfFile()) {
+    await sharePdfFile(bytes, filename);
+    return;
+  }
+
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const frame = document.createElement('iframe');
@@ -818,6 +823,31 @@ function printPdfBytes(bytes) {
   };
 
   document.body.append(frame);
+}
+
+async function sharePdfFile(bytes, filename) {
+  const safeFilename = sanitizeFilename(filename);
+  const file = new File([bytes], safeFilename, { type: 'application/pdf' });
+
+  if (!navigator.canShare({ files: [file] })) {
+    downloadPdf(bytes, filename);
+    return;
+  }
+
+  try {
+    await navigator.share({
+      files: [file],
+      title: safeFilename,
+    });
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      downloadPdf(bytes, filename);
+    }
+  }
+}
+
+function canSharePdfFile() {
+  return Boolean(navigator.share && navigator.canShare && window.File);
 }
 
 function sanitizeFilename(value) {
