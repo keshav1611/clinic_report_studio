@@ -799,7 +799,7 @@ function downloadPdf(bytes, filename) {
 }
 
 async function printPdfBytes(bytes, filename) {
-  if (canSharePdfFile()) {
+  if (shouldSharePdfForPrint()) {
     await sharePdfFile(bytes, filename);
     return;
   }
@@ -846,8 +846,19 @@ async function sharePdfFile(bytes, filename) {
   }
 }
 
-function canSharePdfFile() {
-  return Boolean(navigator.share && navigator.canShare && window.File);
+function shouldSharePdfForPrint() {
+  return isPhoneBrowser() && Boolean(navigator.share && navigator.canShare && window.File);
+}
+
+function isPhoneBrowser() {
+  const userAgent = navigator.userAgent || '';
+  const isIOS =
+    /iPad|iPhone|iPod/.test(userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(userAgent);
+  const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+
+  return Boolean((isIOS || isAndroid) && isCoarsePointer);
 }
 
 function sanitizeFilename(value) {
