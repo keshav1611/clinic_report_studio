@@ -566,16 +566,12 @@ function prepareReportForPrint() {
 async function printReport() {
   const printButton = document.querySelector('[data-action="print-report"]');
   if (printButton) printButton.disabled = true;
-  const pdfWindow = window.open('', '_blank');
-  if (pdfWindow) {
-    pdfWindow.document.write('<p style="font-family: system-ui, sans-serif;">Preparing PDF...</p>');
-  }
 
   try {
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
-    downloadPdf(pdfBytes, `${patient.name || 'clinic-report'}.pdf`, pdfWindow);
+    downloadPdf(pdfBytes, `${patient.name || 'clinic-report'}.pdf`);
   } finally {
     if (printButton) printButton.disabled = false;
   }
@@ -770,19 +766,14 @@ function drawImage(commands, name, x, y, width, height) {
   );
 }
 
-function downloadPdf(bytes, filename, targetWindow) {
+function downloadPdf(bytes, filename) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
-  if (targetWindow) {
-    targetWindow.location.href = url;
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-    return;
-  }
-
   const link = document.createElement('a');
+
   link.href = url;
   link.download = sanitizeFilename(filename);
-  link.target = '_blank';
+  link.rel = 'noopener';
   document.body.append(link);
   link.click();
   link.remove();
