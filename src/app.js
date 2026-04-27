@@ -73,15 +73,15 @@ function render() {
         <h1>Medical Report Studio</h1>
       </div>
       <div class="topbar-actions">
-        <button class="ghost-button" data-action="new-patient">New Patient</button>
+        <button class="primary-button" data-action="new-patient">New Patient</button>
+        <button class="ghost-button" data-action="download-report" ${selectedPatient ? '' : 'disabled'}>
+          Download Report
+        </button>
         <button class="ghost-button" data-action="print-report" ${selectedPatient ? '' : 'disabled'}>
           Print Report
         </button>
         <button class="ghost-button" data-action="share-report" ${selectedPatient ? '' : 'disabled'}>
           Share Report
-        </button>
-        <button class="primary-button" data-action="save-report" ${selectedPatient ? '' : 'disabled'}>
-          Save Report
         </button>
       </div>
     </header>
@@ -409,7 +409,7 @@ function renderReportDetailMeta(patient) {
 
 function bindEvents() {
   document.querySelector('[data-action="new-patient"]')?.addEventListener('click', createPatient);
-  document.querySelector('[data-action="save-report"]')?.addEventListener('click', saveReport);
+  document.querySelector('[data-action="download-report"]')?.addEventListener('click', downloadReport);
   document.querySelector('[data-action="print-report"]')?.addEventListener('click', printReport);
   document.querySelector('[data-action="share-report"]')?.addEventListener('click', shareReport);
   document.querySelector('[data-action="delete-patient"]')?.addEventListener('click', removeSelectedPatient);
@@ -603,9 +603,9 @@ function prepareReportForPrint() {
   updateReportPreviewScale();
 }
 
-async function saveReport() {
-  const saveButton = document.querySelector('[data-action="save-report"]');
-  if (saveButton) saveButton.disabled = true;
+async function downloadReport() {
+  const downloadButton = document.querySelector('[data-action="download-report"]');
+  if (downloadButton) downloadButton.disabled = true;
 
   try {
     const patient = selectedPatient();
@@ -613,7 +613,7 @@ async function saveReport() {
     const pdfBytes = await buildReportPdf(patient);
     downloadPdf(pdfBytes, reportFilename(patient));
   } finally {
-    if (saveButton) saveButton.disabled = false;
+    if (downloadButton) downloadButton.disabled = false;
   }
 }
 

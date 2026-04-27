@@ -105,11 +105,7 @@ button:not(:disabled):active {
   justify-content: flex-end;
 }
 
-.topbar-actions [data-action="new-patient"] {
-  color: #7a6048;
-}
-
-.topbar-actions [data-action="save-report"] {
+.topbar-actions [data-action="download-report"] {
   min-width: 142px;
 }
 
@@ -759,10 +755,6 @@ textarea:focus {
     min-width: 0;
     padding-right: 10px;
     padding-left: 10px;
-  }
-
-  .topbar-actions [data-action="save-report"] {
-    order: 4;
   }
 
   .editor-header {
