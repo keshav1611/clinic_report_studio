@@ -73,7 +73,10 @@ function render() {
       </div>
       <div class="topbar-actions">
         <button class="ghost-button" data-action="new-patient">New Patient</button>
-        <button class="primary-button" data-action="print-report" ${selectedPatient ? '' : 'disabled'}>
+        <button class="ghost-button" data-action="print-pdf" ${selectedPatient ? '' : 'disabled'}>
+          Print PDF
+        </button>
+        <button class="primary-button" data-action="save-pdf" ${selectedPatient ? '' : 'disabled'}>
           Save PDF
         </button>
       </div>
@@ -389,7 +392,8 @@ function renderReport(patient) {
 
 function bindEvents() {
   document.querySelector('[data-action="new-patient"]')?.addEventListener('click', createPatient);
-  document.querySelector('[data-action="print-report"]')?.addEventListener('click', printReport);
+  document.querySelector('[data-action="save-pdf"]')?.addEventListener('click', savePdf);
+  document.querySelector('[data-action="print-pdf"]')?.addEventListener('click', printPdf);
   document.querySelector('[data-action="delete-patient"]')?.addEventListener('click', removeSelectedPatient);
   document
     .querySelector('[data-action="toggle-patient-picker"]')
@@ -563,15 +567,29 @@ function prepareReportForPrint() {
   updateReportPreviewScale();
 }
 
-async function printReport() {
-  const printButton = document.querySelector('[data-action="print-report"]');
-  if (printButton) printButton.disabled = true;
+async function savePdf() {
+  const saveButton = document.querySelector('[data-action="save-pdf"]');
+  if (saveButton) saveButton.disabled = true;
 
   try {
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
     downloadPdf(pdfBytes, `${patient.name || 'clinic-report'}.pdf`);
+  } finally {
+    if (saveButton) saveButton.disabled = false;
+  }
+}
+
+async function printPdf() {
+  const printButton = document.querySelector('[data-action="print-pdf"]');
+  if (printButton) printButton.disabled = true;
+
+  try {
+    const patient = selectedPatient();
+    if (!patient) return;
+    const pdfBytes = await buildReportPdf(patient);
+    printPdfBytes(pdfBytes);
   } finally {
     if (printButton) printButton.disabled = false;
   }
@@ -778,6 +796,28 @@ function downloadPdf(bytes, filename) {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+function printPdfBytes(bytes) {
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const frame = document.createElement('iframe');
+
+  frame.className = 'print-frame';
+  frame.src = url;
+  frame.onload = () => {
+    try {
+      frame.contentWindow?.focus();
+      frame.contentWindow?.print();
+    } finally {
+      setTimeout(() => {
+        frame.remove();
+        URL.revokeObjectURL(url);
+      }, 60000);
+    }
+  };
+
+  document.body.append(frame);
 }
 
 function sanitizeFilename(value) {
