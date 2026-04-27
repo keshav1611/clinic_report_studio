@@ -44,6 +44,7 @@ let selectedPatientId = null;
 let activeTab = 'details';
 let patientSearchQuery = '';
 let patientPickerOpen = false;
+let patientListScrollTop = 0;
 let previewResizeHandlerAttached = false;
 let printHandlerAttached = false;
 
@@ -102,6 +103,7 @@ function render() {
   `;
 
   bindEvents();
+  restorePatientListScroll();
   updateReportPreviewScale();
 }
 
@@ -411,6 +413,9 @@ function bindEvents() {
     .querySelector('[data-action="toggle-patient-picker"]')
     ?.addEventListener('click', togglePatientPicker);
   document.querySelector('[data-patient-search]')?.addEventListener('input', updatePatientSearch);
+  document
+    .querySelector('[data-patient-list]')
+    ?.addEventListener('scroll', rememberPatientListScroll, { passive: true });
   bindPatientRowEvents();
 
   document.querySelectorAll('[data-tab]').forEach((button) => {
@@ -476,6 +481,7 @@ async function createPatient() {
   patients = await getPatients();
   selectedPatientId = patient.id;
   patientSearchQuery = '';
+  patientListScrollTop = 0;
   patientPickerOpen = false;
   activeTab = 'details';
   render();
@@ -489,9 +495,11 @@ function togglePatientPicker() {
 function updatePatientSearch(event) {
   patientSearchQuery = event.currentTarget.value;
   patientPickerOpen = true;
+  patientListScrollTop = 0;
   const patientList = document.querySelector('[data-patient-list]');
   if (patientList) {
     patientList.innerHTML = renderPatientList(filteredPatientList());
+    patientList.scrollTop = patientListScrollTop;
     bindPatientRowEvents();
   }
 }
@@ -499,6 +507,7 @@ function updatePatientSearch(event) {
 function bindPatientRowEvents() {
   document.querySelectorAll('[data-patient-id]').forEach((button) => {
     button.addEventListener('click', () => {
+      rememberPatientListScroll();
       selectedPatientId = button.dataset.patientId;
       patientSearchQuery = '';
       patientPickerOpen = false;
@@ -568,9 +577,20 @@ async function removeSelectedPatient() {
   patients = await getPatients();
   selectedPatientId = patients[0]?.id || null;
   patientSearchQuery = '';
+  patientListScrollTop = 0;
   patientPickerOpen = false;
   activeTab = 'details';
   render();
+}
+
+function rememberPatientListScroll() {
+  const patientList = document.querySelector('[data-patient-list]');
+  if (patientList) patientListScrollTop = patientList.scrollTop;
+}
+
+function restorePatientListScroll() {
+  const patientList = document.querySelector('[data-patient-list]');
+  if (patientList) patientList.scrollTop = patientListScrollTop;
 }
 
 function prepareReportForPrint() {
