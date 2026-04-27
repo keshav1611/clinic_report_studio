@@ -42,6 +42,7 @@ const samplePatient = {
 let patients = [];
 let selectedPatientId = null;
 let activeTab = 'details';
+let patientSearchQuery = '';
 let previewResizeHandlerAttached = false;
 let printHandlerAttached = false;
 
@@ -83,9 +84,7 @@ function render() {
           <h2>Patients</h2>
           <span>${patients.length}</span>
         </div>
-        <div class="patient-list">
-          ${renderPatientList()}
-        </div>
+        ${renderPatientPicker(selectedPatient)}
       </aside>
 
       <section class="editor-panel">
@@ -102,12 +101,48 @@ function render() {
   updateReportPreviewScale();
 }
 
-function renderPatientList() {
+function renderPatientPicker(selectedPatient) {
+  const isDesktop = window.matchMedia('(min-width: 901px)').matches;
+  const filteredPatients = filteredPatientList();
+
+  return `
+    <details class="patient-picker" ${isDesktop ? 'open' : ''}>
+      <summary class="patient-picker-summary">
+        <span>
+          <strong>${escapeHtml(selectedPatient?.name || 'Select patient')}</strong>
+          <small>${selectedPatient ? `${escapeHtml(selectedPatient.age || '-')} years` : 'No patient selected'}</small>
+        </span>
+        <span aria-hidden="true">Change</span>
+      </summary>
+
+      <label class="patient-search">
+        <span>Search patients</span>
+        <input
+          type="search"
+          value="${escapeAttribute(patientSearchQuery)}"
+          placeholder="Name, age, address, date"
+          autocomplete="off"
+          data-patient-search
+        />
+      </label>
+
+      <div class="patient-list" data-patient-list>
+        ${renderPatientList(filteredPatients)}
+      </div>
+    </details>
+  `;
+}
+
+function renderPatientList(patientList) {
   if (patients.length === 0) {
     return '<p class="muted">No patient profiles yet.</p>';
   }
 
-  return patients
+  if (patientList.length === 0) {
+    return '<p class="empty-patient-list">No matching patients.</p>';
+  }
+
+  return patientList
     .map((patient) => {
       const isActive = patient.id === selectedPatientId ? 'active' : '';
       const completion = reportCompletion(patient);
@@ -128,6 +163,17 @@ function renderPatientList() {
       `;
     })
     .join('');
+}
+
+function filteredPatientList() {
+  const query = normalizeSearchText(patientSearchQuery);
+  if (!query) return patients;
+
+  return patients.filter((patient) =>
+    normalizeSearchText(
+      [patient.name, patient.age, patient.address, formatDate(patient.examDate)].filter(Boolean).join(' '),
+    ).includes(query),
+  );
 }
 
 function renderEditor(patient) {
@@ -338,14 +384,8 @@ function bindEvents() {
   document.querySelector('[data-action="new-patient"]')?.addEventListener('click', createPatient);
   document.querySelector('[data-action="print-report"]')?.addEventListener('click', printReport);
   document.querySelector('[data-action="delete-patient"]')?.addEventListener('click', removeSelectedPatient);
-
-  document.querySelectorAll('[data-patient-id]').forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedPatientId = button.dataset.patientId;
-      activeTab = 'details';
-      render();
-    });
-  });
+  document.querySelector('[data-patient-search]')?.addEventListener('input', updatePatientSearch);
+  bindPatientRowEvents();
 
   document.querySelectorAll('[data-tab]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -409,8 +449,28 @@ async function createPatient() {
 
   patients = await getPatients();
   selectedPatientId = patient.id;
+  patientSearchQuery = '';
   activeTab = 'details';
   render();
+}
+
+function updatePatientSearch(event) {
+  patientSearchQuery = event.currentTarget.value;
+  const patientList = document.querySelector('[data-patient-list]');
+  if (patientList) {
+    patientList.innerHTML = renderPatientList(filteredPatientList());
+    bindPatientRowEvents();
+  }
+}
+
+function bindPatientRowEvents() {
+  document.querySelectorAll('[data-patient-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedPatientId = button.dataset.patientId;
+      activeTab = 'details';
+      render();
+    });
+  });
 }
 
 async function saveDetails(event) {
@@ -858,4 +918,8 @@ function escapeHtml(value = '') {
 
 function escapeAttribute(value = '') {
   return escapeHtml(value).replaceAll('\n', ' ');
+}
+
+function normalizeSearchText(value = '') {
+  return String(value).trim().toLowerCase();
 }

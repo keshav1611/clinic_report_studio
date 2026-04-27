@@ -150,6 +150,10 @@ button:not(:disabled):active {
 
 .patient-panel {
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 44px);
+  min-height: 0;
   padding: 18px;
   position: sticky;
   top: 18px;
@@ -176,8 +180,36 @@ button:not(:disabled):active {
 
 .patient-list {
   display: grid;
+  flex: 1;
   gap: 10px;
+  align-content: start;
   margin-top: 18px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.patient-picker {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.patient-picker-summary {
+  display: none;
+}
+
+.patient-search {
+  margin-top: 16px;
+}
+
+.patient-search span {
+  font-size: 13px;
+}
+
+.patient-search input {
+  padding: 10px 12px;
 }
 
 .patient-row {
@@ -239,6 +271,13 @@ button:not(:disabled):active {
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
+}
+
+.empty-patient-list {
+  margin: 8px 0 0;
+  padding: 14px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .editor-panel {
@@ -538,6 +577,7 @@ textarea:focus {
   }
 
   .patient-panel {
+    max-height: none;
     position: static;
   }
 
@@ -578,6 +618,92 @@ textarea:focus {
 
   .tab-surface {
     padding: 16px;
+  }
+
+  .patient-panel {
+    padding: 18px 16px;
+  }
+
+  .patient-picker {
+    display: block;
+    flex: none;
+    margin-top: 16px;
+  }
+
+  .patient-picker-summary {
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid #b8d7d2;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    cursor: pointer;
+    font-weight: 800;
+    list-style: none;
+  }
+
+  .patient-picker-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .patient-picker-summary:focus-visible {
+    outline: 3px solid rgba(15, 118, 110, 0.22);
+    outline-offset: 2px;
+  }
+
+  .patient-picker-summary span:first-child {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .patient-picker-summary strong,
+  .patient-picker-summary small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .patient-picker-summary small {
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .patient-picker[open] .patient-picker-summary {
+    border-color: #99c9c3;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .patient-search {
+    margin-top: 12px;
+  }
+
+  .patient-picker[open] .patient-search,
+  .patient-picker[open] .patient-list {
+    border-right: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    padding-right: 12px;
+    padding-left: 12px;
+    background: #fbfcfd;
+  }
+
+  .patient-picker[open] .patient-search {
+    padding-top: 12px;
+  }
+
+  .patient-picker[open] .patient-list {
+    max-height: 45vh;
+    margin-top: 0;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
   }
 
   .tabs {
