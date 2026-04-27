@@ -1,21 +1,21 @@
 :root {
   color-scheme: light;
-  --ink: #1d2835;
-  --muted: #667486;
-  --line: #d7e3ee;
-  --border-strong: #abc3d8;
-  --paper: #ffffff;
-  --surface: #ffffff;
-  --surface-muted: #f7fbff;
-  --soft: #eef6ff;
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-soft: #dbeafe;
-  --focus: rgba(37, 99, 235, 0.18);
-  --action-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+  --ink: #28251e;
+  --muted: #706b5d;
+  --line: #e1d8c3;
+  --border-strong: #c5b47f;
+  --paper: #fffdf7;
+  --surface: #fffdf8;
+  --surface-muted: #faf5e7;
+  --soft: #f2ead5;
+  --accent: #717d2e;
+  --accent-strong: #4f5a1e;
+  --accent-soft: #eef1d5;
+  --focus: rgba(113, 125, 46, 0.22);
+  --action-shadow: 0 10px 24px rgba(113, 125, 46, 0.22);
   --danger: #b42318;
-  --shadow: 0 12px 30px rgba(31, 41, 51, 0.08);
-  --shadow-soft: 0 8px 20px rgba(31, 41, 51, 0.06);
+  --shadow: 0 12px 30px rgba(63, 54, 34, 0.09);
+  --shadow-soft: 0 8px 20px rgba(63, 54, 34, 0.06);
   --report-width: 595.28px;
   --report-height: 841.89px;
   --report-padding: 45px;
@@ -28,9 +28,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background:
-    radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.2), transparent 310px),
-    linear-gradient(180deg, #f8fbff 0, #eef6ff 360px, #e9f1fb 100%);
+  background: linear-gradient(180deg, #fffaf0 0, #f4ecd6 360px, #eee2c8 100%);
   color: var(--ink);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -68,7 +66,7 @@ button:not(:disabled):active {
   justify-content: space-between;
   gap: 24px;
   padding: 26px 32px 20px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 253, 247, 0.94);
   border-bottom: 1px solid var(--line);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
@@ -81,7 +79,7 @@ button:not(:disabled):active {
 }
 
 .topbar h1 {
-  color: #172331;
+  color: #252219;
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.05;
 }
@@ -108,7 +106,7 @@ button:not(:disabled):active {
 }
 
 .topbar-actions [data-action="new-patient"] {
-  color: #526274;
+  color: #756e5f;
 }
 
 .topbar-actions [data-action="save-pdf"] {
@@ -141,13 +139,13 @@ button:not(:disabled):active {
 .ghost-button {
   background: var(--surface);
   color: var(--accent-strong);
-  border-color: #b9cdec;
+  border-color: #d8c893;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .ghost-button:hover {
-  background: #edf5ff;
-  border-color: #93b4ea;
+  background: #fbf2d9;
+  border-color: #c9ad56;
 }
 
 .danger-button {
@@ -240,7 +238,7 @@ button:not(:disabled):active {
 
 .patient-search span {
   font-size: 13px;
-  color: #435466;
+  color: #605a4b;
 }
 
 .patient-search input {
@@ -256,14 +254,14 @@ button:not(:disabled):active {
   padding: 14px 15px;
   text-align: left;
   background: var(--surface-muted);
-  border: 1px solid #e0e8ee;
+  border: 1px solid #e6ddc8;
   border-radius: 8px;
   color: var(--ink);
 }
 
 .patient-row:hover {
-  border-color: #adc8ee;
-  background: #f8fbff;
+  border-color: #d8c893;
+  background: #fff9ec;
 }
 
 .patient-row span,
@@ -274,10 +272,10 @@ button:not(:disabled):active {
 
 .patient-row.active {
   background: var(--accent-soft);
-  border-color: #8bb4f8;
+  border-color: #b4be73;
   box-shadow:
     inset 3px 0 0 var(--accent),
-    0 8px 18px rgba(37, 99, 235, 0.1);
+    0 8px 18px rgba(113, 125, 46, 0.12);
 }
 
 .patient-row-main,
@@ -307,14 +305,14 @@ button:not(:disabled):active {
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: #dbe5e8;
+  background: #e0d7c2;
 }
 
 .progress-meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), #06b6d4);
+  background: linear-gradient(90deg, var(--accent), #d6a72c);
 }
 
 .empty-patient-list {
@@ -331,7 +329,7 @@ button:not(:disabled):active {
 .editor-header {
   padding: 24px 26px 18px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #ffffff, #fbfdfe);
+  background: linear-gradient(180deg, #fffdf8, #fbf6e9);
 }
 
 .tabs {
@@ -352,7 +350,7 @@ button:not(:disabled):active {
 .tab-button.active {
   background: var(--paper);
   color: var(--accent-strong);
-  border-color: #bfd1ec;
+  border-color: #d7cc9c;
   box-shadow: var(--shadow-soft);
 }
 
@@ -377,7 +375,7 @@ button:not(:disabled):active {
 label {
   display: grid;
   gap: 9px;
-  color: #364252;
+  color: #3d382c;
   font-weight: 800;
 }
 
@@ -388,9 +386,9 @@ label {
 input,
 textarea {
   width: 100%;
-  border: 1px solid #c8d4df;
+  border: 1px solid #d4c9af;
   border-radius: 8px;
-  background: #fbfdfe;
+  background: #fffdf8;
   color: var(--ink);
   padding: 12px 13px;
   resize: vertical;
@@ -422,11 +420,11 @@ textarea:focus {
   display: inline-flex;
   min-height: 28px;
   align-items: center;
-  border: 1px solid #c2d6f5;
+  border: 1px solid #d7cc9c;
   border-radius: 999px;
   padding: 0 10px;
-  background: #eff6ff;
-  color: #244c9f;
+  background: #f6f1dd;
+  color: #596323;
   font-size: 12px;
   font-weight: 800;
 }
@@ -445,9 +443,9 @@ textarea:focus {
   min-height: 118px;
   width: min(100%, 420px);
   place-items: center;
-  border: 1px dashed #8ebbb6;
+  border: 1px dashed #b7a45f;
   border-radius: 8px;
-  background: linear-gradient(180deg, #f8fbff, #eef6ff);
+  background: linear-gradient(180deg, #fff9ec, #f2ead5);
   color: var(--accent-strong);
 }
 
@@ -460,9 +458,9 @@ textarea:focus {
 }
 
 .upload-zone.disabled {
-  background: #f8fafb;
-  border-color: #cdd6df;
-  color: #4c596a;
+  background: #f8f5ec;
+  border-color: #d6ccb7;
+  color: #6d6456;
 }
 
 .image-grid {
@@ -475,7 +473,7 @@ textarea:focus {
 .image-tile {
   margin: 0;
   overflow: hidden;
-  border: 1px solid #dce5ec;
+  border: 1px solid #e3dac5;
   border-radius: 8px;
   background: var(--paper);
   box-shadow: 0 8px 20px rgba(31, 41, 51, 0.06);
@@ -486,7 +484,7 @@ textarea:focus {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  background: #dfe6ea;
+  background: #e3dac5;
 }
 
 .image-tile figcaption {
@@ -671,7 +669,7 @@ textarea:focus {
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-    border: 1px solid #b9cdec;
+    border: 1px solid #d8c893;
     border-radius: 8px;
     padding: 10px 12px;
     background: var(--accent-soft);
@@ -682,7 +680,7 @@ textarea:focus {
   }
 
   .patient-picker-summary:focus-visible {
-    outline: 3px solid rgba(15, 118, 110, 0.22);
+    outline: 3px solid var(--focus);
     outline-offset: 2px;
   }
 
@@ -705,7 +703,7 @@ textarea:focus {
   }
 
   .patient-picker.open .patient-picker-summary {
-    border-color: #8bb4f8;
+    border-color: #b4be73;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
   }
@@ -725,7 +723,7 @@ textarea:focus {
     border-left: 1px solid var(--line);
     padding-right: 12px;
     padding-left: 12px;
-    background: #f8fbff;
+    background: #fff9ec;
   }
 
   .patient-picker.open .patient-search {
