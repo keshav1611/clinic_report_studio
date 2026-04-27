@@ -43,6 +43,7 @@ let patients = [];
 let selectedPatientId = null;
 let activeTab = 'details';
 let patientSearchQuery = '';
+let patientPickerOpen = false;
 let previewResizeHandlerAttached = false;
 let printHandlerAttached = false;
 
@@ -103,17 +104,23 @@ function render() {
 
 function renderPatientPicker(selectedPatient) {
   const isDesktop = window.matchMedia('(min-width: 901px)').matches;
+  const isOpen = isDesktop || patientPickerOpen;
   const filteredPatients = filteredPatientList();
 
   return `
-    <details class="patient-picker" ${isDesktop ? 'open' : ''}>
-      <summary class="patient-picker-summary">
+    <div class="patient-picker ${isOpen ? 'open' : ''}">
+      <button
+        class="patient-picker-summary"
+        type="button"
+        data-action="toggle-patient-picker"
+        aria-expanded="${isOpen}"
+      >
         <span>
           <strong>${escapeHtml(selectedPatient?.name || 'Select patient')}</strong>
           <small>${selectedPatient ? `${escapeHtml(selectedPatient.age || '-')} years` : 'No patient selected'}</small>
         </span>
         <span aria-hidden="true">Change</span>
-      </summary>
+      </button>
 
       <label class="patient-search">
         <span>Search patients</span>
@@ -129,7 +136,7 @@ function renderPatientPicker(selectedPatient) {
       <div class="patient-list" data-patient-list>
         ${renderPatientList(filteredPatients)}
       </div>
-    </details>
+    </div>
   `;
 }
 
@@ -384,6 +391,9 @@ function bindEvents() {
   document.querySelector('[data-action="new-patient"]')?.addEventListener('click', createPatient);
   document.querySelector('[data-action="print-report"]')?.addEventListener('click', printReport);
   document.querySelector('[data-action="delete-patient"]')?.addEventListener('click', removeSelectedPatient);
+  document
+    .querySelector('[data-action="toggle-patient-picker"]')
+    ?.addEventListener('click', togglePatientPicker);
   document.querySelector('[data-patient-search]')?.addEventListener('input', updatePatientSearch);
   bindPatientRowEvents();
 
@@ -450,12 +460,19 @@ async function createPatient() {
   patients = await getPatients();
   selectedPatientId = patient.id;
   patientSearchQuery = '';
+  patientPickerOpen = false;
   activeTab = 'details';
+  render();
+}
+
+function togglePatientPicker() {
+  patientPickerOpen = !patientPickerOpen;
   render();
 }
 
 function updatePatientSearch(event) {
   patientSearchQuery = event.currentTarget.value;
+  patientPickerOpen = true;
   const patientList = document.querySelector('[data-patient-list]');
   if (patientList) {
     patientList.innerHTML = renderPatientList(filteredPatientList());
@@ -467,6 +484,8 @@ function bindPatientRowEvents() {
   document.querySelectorAll('[data-patient-id]').forEach((button) => {
     button.addEventListener('click', () => {
       selectedPatientId = button.dataset.patientId;
+      patientSearchQuery = '';
+      patientPickerOpen = false;
       activeTab = 'details';
       render();
     });
@@ -532,6 +551,8 @@ async function removeSelectedPatient() {
   await deletePatient(patient.id);
   patients = await getPatients();
   selectedPatientId = patients[0]?.id || null;
+  patientSearchQuery = '';
+  patientPickerOpen = false;
   activeTab = 'details';
   render();
 }
