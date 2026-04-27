@@ -74,11 +74,14 @@ function render() {
       </div>
       <div class="topbar-actions">
         <button class="ghost-button" data-action="new-patient">New Patient</button>
-        <button class="ghost-button" data-action="print-pdf" ${selectedPatient ? '' : 'disabled'}>
-          Print PDF
+        <button class="ghost-button" data-action="print-report" ${selectedPatient ? '' : 'disabled'}>
+          Print Report
         </button>
-        <button class="primary-button" data-action="save-pdf" ${selectedPatient ? '' : 'disabled'}>
-          Save PDF
+        <button class="ghost-button" data-action="share-report" ${selectedPatient ? '' : 'disabled'}>
+          Share Report
+        </button>
+        <button class="primary-button" data-action="save-report" ${selectedPatient ? '' : 'disabled'}>
+          Save Report
         </button>
       </div>
     </header>
@@ -406,8 +409,9 @@ function renderReportDetailMeta(patient) {
 
 function bindEvents() {
   document.querySelector('[data-action="new-patient"]')?.addEventListener('click', createPatient);
-  document.querySelector('[data-action="save-pdf"]')?.addEventListener('click', savePdf);
-  document.querySelector('[data-action="print-pdf"]')?.addEventListener('click', printPdf);
+  document.querySelector('[data-action="save-report"]')?.addEventListener('click', saveReport);
+  document.querySelector('[data-action="print-report"]')?.addEventListener('click', printReport);
+  document.querySelector('[data-action="share-report"]')?.addEventListener('click', shareReport);
   document.querySelector('[data-action="delete-patient"]')?.addEventListener('click', removeSelectedPatient);
   document
     .querySelector('[data-action="toggle-patient-picker"]')
@@ -599,32 +603,50 @@ function prepareReportForPrint() {
   updateReportPreviewScale();
 }
 
-async function savePdf() {
-  const saveButton = document.querySelector('[data-action="save-pdf"]');
+async function saveReport() {
+  const saveButton = document.querySelector('[data-action="save-report"]');
   if (saveButton) saveButton.disabled = true;
 
   try {
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
-    downloadPdf(pdfBytes, `${patient.name || 'clinic-report'}.pdf`);
+    downloadPdf(pdfBytes, reportFilename(patient));
   } finally {
     if (saveButton) saveButton.disabled = false;
   }
 }
 
-async function printPdf() {
-  const printButton = document.querySelector('[data-action="print-pdf"]');
+async function printReport() {
+  const printButton = document.querySelector('[data-action="print-report"]');
   if (printButton) printButton.disabled = true;
 
   try {
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
-    await printPdfBytes(pdfBytes, `${patient.name || 'clinic-report'}.pdf`);
+    await printPdfBytes(pdfBytes, reportFilename(patient));
   } finally {
     if (printButton) printButton.disabled = false;
   }
+}
+
+async function shareReport() {
+  const shareButton = document.querySelector('[data-action="share-report"]');
+  if (shareButton) shareButton.disabled = true;
+
+  try {
+    const patient = selectedPatient();
+    if (!patient) return;
+    const pdfBytes = await buildReportPdf(patient);
+    await sharePdfFile(pdfBytes, reportFilename(patient));
+  } finally {
+    if (shareButton) shareButton.disabled = false;
+  }
+}
+
+function reportFilename(patient) {
+  return `${patient.name || 'medical-report'}.pdf`;
 }
 
 async function updatePatient(patient) {
