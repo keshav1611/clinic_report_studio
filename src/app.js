@@ -64,7 +64,6 @@ async function init() {
 
 function render() {
   const selectedPatient = patients.find((patient) => patient.id === selectedPatientId);
-  const showPrintPdf = canUseDirectPdfPrint();
 
   app.innerHTML = `
     <header class="topbar">
@@ -74,13 +73,9 @@ function render() {
       </div>
       <div class="topbar-actions">
         <button class="ghost-button" data-action="new-patient">New Patient</button>
-        ${
-          showPrintPdf
-            ? `<button class="ghost-button" data-action="print-pdf" ${selectedPatient ? '' : 'disabled'}>
-                Print PDF
-              </button>`
-            : ''
-        }
+        <button class="ghost-button" data-action="print-pdf" ${selectedPatient ? '' : 'disabled'}>
+          Print PDF
+        </button>
         <button class="primary-button" data-action="save-pdf" ${selectedPatient ? '' : 'disabled'}>
           Save PDF
         </button>
@@ -979,13 +974,4 @@ function escapeAttribute(value = '') {
 
 function normalizeSearchText(value = '') {
   return String(value).trim().toLowerCase();
-}
-
-function canUseDirectPdfPrint() {
-  const isTouchDevice = window.matchMedia?.('(pointer: coarse)').matches;
-  const isIOS =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-  return !isTouchDevice && !isIOS;
 }
