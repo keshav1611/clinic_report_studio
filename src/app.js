@@ -68,8 +68,8 @@ function render() {
   app.innerHTML = `
     <header class="topbar">
       <div>
-        <p class="eyebrow">Private clinic tool</p>
-        <h1>Clinic Report Studio</h1>
+        <p class="eyebrow">ENT report workspace</p>
+        <h1>Scope ENT</h1>
       </div>
       <div class="topbar-actions">
         <button class="ghost-button" data-action="new-patient">New Patient</button>
@@ -120,7 +120,7 @@ function renderPatientPicker(selectedPatient) {
       >
         <span>
           <strong>${escapeHtml(selectedPatient?.name || 'Select patient')}</strong>
-          <small>${selectedPatient ? `${escapeHtml(selectedPatient.age || '-')} years` : 'No patient selected'}</small>
+          <small>${selectedPatient ? escapeHtml(patientAgeLabel(selectedPatient)) : 'No patient selected'}</small>
         </span>
         <span aria-hidden="true">Change</span>
       </button>
@@ -160,7 +160,7 @@ function renderPatientList(patientList) {
         <button class="patient-row ${isActive}" data-patient-id="${patient.id}">
           <span class="patient-row-main">
             <strong>${escapeHtml(patient.name || 'Unnamed patient')}</strong>
-            <span>${escapeHtml(patient.age || '-')} years</span>
+            <span>${escapeHtml(patientAgeLabel(patient))}</span>
           </span>
           <span class="patient-row-meta">
             <span>${completion.completed}/${completion.total} complete</span>
@@ -1015,4 +1015,8 @@ function escapeAttribute(value = '') {
 
 function normalizeSearchText(value = '') {
   return String(value).trim().toLowerCase();
+}
+
+function patientAgeLabel(patient) {
+  return patient.age ? `${patient.age} years` : 'Age not set';
 }
