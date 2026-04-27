@@ -19,7 +19,7 @@ const PDF_PAGE_HEIGHT = 841.89;
 const PDF_MARGIN = 45;
 const REPORT_WIDTH = PDF_PAGE_WIDTH;
 const REPORT_HEIGHT = PDF_PAGE_HEIGHT;
-const REQUIRED_DETAIL_FIELDS = ['name', 'age', 'address', 'examDate'];
+const DETAIL_FIELDS = ['name', 'age', 'address', 'examDate'];
 
 const samplePatient = {
   id: crypto.randomUUID(),
@@ -69,7 +69,7 @@ function render() {
     <header class="topbar">
       <div>
         <p class="eyebrow">ENT report workspace</p>
-        <h1>Scope ENT</h1>
+        <h1>Medical Report Studio</h1>
       </div>
       <div class="topbar-actions">
         <button class="ghost-button" data-action="new-patient">New Patient</button>
@@ -119,7 +119,7 @@ function renderPatientPicker(selectedPatient) {
         aria-expanded="${isOpen}"
       >
         <span>
-          <strong>${escapeHtml(selectedPatient?.name || 'Select patient')}</strong>
+          <strong>${escapeHtml(selectedPatient ? displayPatientName(selectedPatient) : 'Select patient')}</strong>
           <small>${selectedPatient ? escapeHtml(patientAgeLabel(selectedPatient)) : 'No patient selected'}</small>
         </span>
         <span aria-hidden="true">Change</span>
@@ -159,11 +159,11 @@ function renderPatientList(patientList) {
       return `
         <button class="patient-row ${isActive}" data-patient-id="${patient.id}">
           <span class="patient-row-main">
-            <strong>${escapeHtml(patient.name || 'Unnamed patient')}</strong>
+            <strong>${escapeHtml(displayPatientName(patient))}</strong>
             <span>${escapeHtml(patientAgeLabel(patient))}</span>
           </span>
           <span class="patient-row-meta">
-            <span>${completion.completed}/${completion.total} complete</span>
+            <span>${completion.completed}/${completion.total} filled</span>
             <span>${patient.images.length}/4 images</span>
           </span>
           <span class="progress-meter" aria-hidden="true">
@@ -194,9 +194,9 @@ function renderEditor(patient) {
     <div class="editor-header">
       <div>
         <p class="eyebrow">Current report</p>
-        <h2>${escapeHtml(patient.name || 'Unnamed patient')}</h2>
+        <h2>${escapeHtml(displayPatientName(patient))}</h2>
         <div class="report-status" aria-label="Report status">
-          <span>${completion.completed}/${completion.total} complete</span>
+          <span>${completion.completed}/${completion.total} filled</span>
           <span>${findingCount}/${reportFields.length} findings</span>
           <span>${patient.images.length}/4 images</span>
         </div>
@@ -237,19 +237,19 @@ function renderDetails(patient) {
     <form class="form-grid" data-form="details">
       <label>
         Patient name
-        <input name="name" value="${escapeAttribute(patient.name)}" autocomplete="off" required />
+        <input name="name" value="${escapeAttribute(patient.name)}" autocomplete="off" />
       </label>
       <label>
         Age
-        <input name="age" value="${escapeAttribute(patient.age)}" inputmode="numeric" required />
+        <input name="age" value="${escapeAttribute(patient.age)}" inputmode="numeric" />
       </label>
       <label class="wide">
         Address
-        <textarea name="address" rows="3" required>${escapeHtml(patient.address)}</textarea>
+        <textarea name="address" rows="3">${escapeHtml(patient.address)}</textarea>
       </label>
       <label>
         Examination date
-        <input name="examDate" type="date" value="${escapeAttribute(patient.examDate || todayInputValue())}" />
+        <input name="examDate" type="date" value="${escapeAttribute(patient.examDate || '')}" />
       </label>
       <div class="form-actions sticky-actions wide">
         <button class="primary-button" type="submit">Save Details</button>
@@ -326,12 +326,12 @@ function completedFindingsCount(patient) {
 }
 
 function reportCompletion(patient) {
-  const detailCount = REQUIRED_DETAIL_FIELDS.filter((field) => Boolean(patient[field]?.trim())).length;
+  const detailCount = DETAIL_FIELDS.filter((field) => Boolean(patient[field]?.trim())).length;
   const findingCount = completedFindingsCount(patient);
   const extrasCount = [patient.diagnosis, patient.advice].filter((value) => Boolean(value?.trim())).length;
   const imageCount = Math.min(patient.images.length, 4);
   const completed = detailCount + findingCount + extrasCount + imageCount;
-  const total = REQUIRED_DETAIL_FIELDS.length + reportFields.length + 2 + 4;
+  const total = DETAIL_FIELDS.length + reportFields.length + 2 + 4;
 
   return {
     completed,
@@ -341,6 +341,8 @@ function reportCompletion(patient) {
 }
 
 function renderReport(patient) {
+  const detailMeta = renderReportDetailMeta(patient);
+
   return `
     <div class="report-preview-frame">
       <article class="report-sheet" id="report-sheet">
@@ -348,14 +350,7 @@ function renderReport(patient) {
           <h2>Dr. Sujeet Kumar Jethaliya</h2>
         </header>
 
-        <section class="report-meta">
-          <div>
-            <p><strong>Patient's name:</strong> ${escapeHtml(patient.name)}</p>
-            <p><strong>Patient's age:</strong> ${escapeHtml(patient.age)}</p>
-            <p><strong>Patient's address:</strong> ${escapeHtml(patient.address)}</p>
-          </div>
-          <p><strong>Date:</strong> ${formatDate(patient.examDate)}</p>
-        </section>
+        ${detailMeta}
 
         <p class="report-title">Video Laryngoscopy / Fibre Optics Laryngoscopy report</p>
 
@@ -387,6 +382,23 @@ function renderReport(patient) {
         </footer>
       </article>
     </div>
+  `;
+}
+
+function renderReportDetailMeta(patient) {
+  const leftDetails = reportLeftDetails(patient);
+  const date = formatDate(patient.examDate);
+  if (leftDetails.length === 0 && !date) return '';
+
+  return `
+    <section class="report-meta">
+      <div>
+        ${leftDetails
+          .map(({ label, value }) => `<p><strong>${label}</strong> ${escapeHtml(value)}</p>`)
+          .join('')}
+      </div>
+      ${date ? `<p><strong>Date:</strong> ${escapeHtml(date)}</p>` : ''}
+    </section>
   `;
 }
 
@@ -451,10 +463,10 @@ function contentWidth(element) {
 async function createPatient() {
   const patient = await savePatient({
     id: crypto.randomUUID(),
-    name: 'New Patient',
+    name: '',
     age: '',
     address: '',
-    examDate: todayInputValue(),
+    examDate: '',
     findings: { ...blankFindings },
     diagnosis: '',
     advice: '',
@@ -506,7 +518,7 @@ async function saveDetails(event) {
     name: formData.get('name').trim(),
     age: formData.get('age').trim(),
     address: formData.get('address').trim(),
-    examDate: formData.get('examDate') || todayInputValue(),
+    examDate: formData.get('examDate') || '',
   });
 }
 
@@ -684,13 +696,19 @@ async function buildReportPdf(patient) {
   drawCenteredText(content, 'Dr. Sujeet Kumar Jethaliya', y, 20, 'F2', page.width);
   y -= 36;
 
-  drawLabelValue(content, "Patient's name:", patient.name || '', page.margin, y, 15);
-  drawText(content, `Date: ${formatDate(patient.examDate)}`, page.width - page.margin - 95, y, 15, 'F1');
-  y -= 24;
-  drawLabelValue(content, "Patient's age:", patient.age || '', page.margin, y, 15);
-  y -= 24;
-  drawLabelValue(content, "Patient's address:", patient.address || '', page.margin, y, 15);
-  y -= 48;
+  const leftDetails = reportLeftDetails(patient);
+  const formattedDate = formatDate(patient.examDate);
+  const detailLineCount = Math.max(leftDetails.length, formattedDate ? 1 : 0);
+
+  leftDetails.forEach(({ label, value }, index) => {
+    drawLabelValue(content, label, value, page.margin, y - index * 24, 15);
+  });
+
+  if (formattedDate) {
+    drawText(content, `Date: ${formattedDate}`, page.width - page.margin - 95, y, 15, 'F1');
+  }
+
+  y -= detailLineCount > 0 ? detailLineCount * 24 + 24 : 24;
 
   drawCenteredText(content, 'Video Laryngoscopy / Fibre Optics Laryngoscopy report', y, 17, 'F3', page.width);
   y -= 42;
@@ -1019,4 +1037,16 @@ function normalizeSearchText(value = '') {
 
 function patientAgeLabel(patient) {
   return patient.age ? `${patient.age} years` : 'Age not set';
+}
+
+function displayPatientName(patient) {
+  return patient.name || 'New Patient';
+}
+
+function reportLeftDetails(patient) {
+  return [
+    { label: "Patient's name:", value: patient.name },
+    { label: "Patient's age:", value: patient.age },
+    { label: "Patient's address:", value: patient.address },
+  ].filter(({ value }) => Boolean(value?.trim()));
 }
