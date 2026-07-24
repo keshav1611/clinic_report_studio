@@ -20,6 +20,7 @@ const PDF_MARGIN = 45;
 const REPORT_WIDTH = PDF_PAGE_WIDTH;
 const REPORT_HEIGHT = PDF_PAGE_HEIGHT;
 const DETAIL_FIELDS = ['name', 'age', 'address', 'examDate'];
+const AUTOSAVE_DELAY_MS = 300;
 
 const samplePatient = {
   id: crypto.randomUUID(),
@@ -47,6 +48,10 @@ let patientPickerOpen = false;
 let patientListScrollTop = 0;
 let previewResizeHandlerAttached = false;
 let printHandlerAttached = false;
+let autosaveFlushHandlersAttached = false;
+let autosaveTimeout = null;
+let pendingAutosavePatientId = null;
+let autosavePromise = Promise.resolve();
 
 const app = document.querySelector('#app');
 
@@ -256,9 +261,6 @@ function renderDetails(patient) {
         Examination date
         <input name="examDate" type="date" value="${escapeAttribute(patient.examDate || '')}" />
       </label>
-      <div class="form-actions sticky-actions wide">
-        <button class="primary-button" type="submit">Save Details</button>
-      </div>
     </form>
   `;
 }
@@ -286,9 +288,6 @@ function renderFindings(patient) {
         Advice
         <textarea name="advice" rows="3">${escapeHtml(patient.advice || '')}</textarea>
       </label>
-      <div class="form-actions sticky-actions wide">
-        <button class="primary-button" type="submit">Save Findings</button>
-      </div>
     </form>
   `;
 }
@@ -429,8 +428,8 @@ function bindEvents() {
     });
   });
 
-  document.querySelector('[data-form="details"]')?.addEventListener('submit', saveDetails);
-  document.querySelector('[data-form="findings"]')?.addEventListener('submit', saveFindings);
+  bindAutosaveForm(document.querySelector('[data-form="details"]'), saveDetailsDraft);
+  bindAutosaveForm(document.querySelector('[data-form="findings"]'), saveFindingsDraft);
   document.querySelector('input[type="file"]')?.addEventListener('change', addImages);
 
   document.querySelectorAll('[data-remove-image]').forEach((button) => {
@@ -447,6 +446,16 @@ function bindEvents() {
   if (!printHandlerAttached) {
     window.addEventListener('beforeprint', prepareReportForPrint);
     printHandlerAttached = true;
+  }
+
+  if (!autosaveFlushHandlersAttached) {
+    window.addEventListener('pagehide', () => {
+      void flushPendingAutosave();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') void flushPendingAutosave();
+    });
+    autosaveFlushHandlersAttached = true;
   }
 }
 
@@ -470,6 +479,8 @@ function contentWidth(element) {
 }
 
 async function createPatient() {
+  await flushPendingAutosave();
+
   const patient = await savePatient({
     id: crypto.randomUUID(),
     name: '',
@@ -512,6 +523,7 @@ function bindPatientRowEvents() {
   document.querySelectorAll('[data-patient-id]').forEach((button) => {
     button.addEventListener('click', () => {
       rememberPatientListScroll();
+      void flushPendingAutosave();
       selectedPatientId = button.dataset.patientId;
       patientSearchQuery = '';
       patientPickerOpen = false;
@@ -521,36 +533,105 @@ function bindPatientRowEvents() {
   });
 }
 
-async function saveDetails(event) {
-  event.preventDefault();
-  const patient = selectedPatient();
-  const formData = new FormData(event.currentTarget);
+function bindAutosaveForm(form, saveDraft) {
+  if (!form) return;
 
-  await updatePatient({
-    ...patient,
-    name: formData.get('name').trim(),
-    age: formData.get('age').trim(),
-    address: formData.get('address').trim(),
-    examDate: formData.get('examDate') || '',
+  form.addEventListener('input', saveDraft);
+  form.addEventListener('change', saveDraft);
+  form.addEventListener('focusout', () => {
+    void flushPendingAutosave();
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    void flushPendingAutosave();
   });
 }
 
-async function saveFindings(event) {
+function saveDetailsDraft(event) {
   event.preventDefault();
-  const patient = selectedPatient();
-  const formData = new FormData(event.currentTarget);
-  const findings = {};
+  const field = event.target?.name;
+  if (!DETAIL_FIELDS.includes(field)) return;
 
-  reportFields.forEach((field) => {
-    findings[field] = formData.get(field).trim();
-  });
-
-  await updatePatient({
+  updateSelectedPatientDraft((patient) => ({
     ...patient,
-    findings,
-    diagnosis: formData.get('diagnosis').trim(),
-    advice: formData.get('advice').trim(),
+    [field]: event.target.value,
+  }));
+}
+
+function saveFindingsDraft(event) {
+  event.preventDefault();
+  const field = event.target?.name;
+  if (!field) return;
+
+  updateSelectedPatientDraft((patient) => {
+    if (reportFields.includes(field)) {
+      return {
+        ...patient,
+        findings: {
+          ...patient.findings,
+          [field]: event.target.value,
+        },
+      };
+    }
+
+    if (field === 'diagnosis' || field === 'advice') {
+      return {
+        ...patient,
+        [field]: event.target.value,
+      };
+    }
+
+    return patient;
   });
+}
+
+function updateSelectedPatientDraft(updater) {
+  const index = patients.findIndex((patient) => patient.id === selectedPatientId);
+  if (index === -1) return;
+
+  const nextPatient = updater(patients[index]);
+  patients = replaceArrayItem(patients, index, nextPatient);
+  scheduleAutosave(nextPatient.id);
+}
+
+function replaceArrayItem(items, index, item) {
+  const nextItems = [...items];
+  nextItems[index] = item;
+  return nextItems;
+}
+
+function scheduleAutosave(patientId) {
+  pendingAutosavePatientId = patientId;
+  clearTimeout(autosaveTimeout);
+  autosaveTimeout = setTimeout(() => {
+    void flushPendingAutosave();
+  }, AUTOSAVE_DELAY_MS);
+}
+
+function flushPendingAutosave() {
+  const patientId = pendingAutosavePatientId;
+  pendingAutosavePatientId = null;
+  clearTimeout(autosaveTimeout);
+  autosaveTimeout = null;
+
+  if (!patientId) return autosavePromise;
+
+  autosavePromise = autosavePromise.then(async () => {
+    const patient = patients.find((currentPatient) => currentPatient.id === patientId);
+    if (!patient) return;
+
+    const savedPatient = await savePatient(patient);
+    const index = patients.findIndex((currentPatient) => currentPatient.id === patientId);
+    if (index === -1) return;
+
+    patients = replaceArrayItem(patients, index, {
+      ...patients[index],
+      createdAt: savedPatient.createdAt,
+      updatedAt: savedPatient.updatedAt,
+    });
+  });
+
+  return autosavePromise;
 }
 
 async function addImages(event) {
@@ -608,6 +689,7 @@ async function downloadReport() {
   if (downloadButton) downloadButton.disabled = true;
 
   try {
+    await flushPendingAutosave();
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
@@ -622,6 +704,7 @@ async function printReport() {
   if (printButton) printButton.disabled = true;
 
   try {
+    await flushPendingAutosave();
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
@@ -636,6 +719,7 @@ async function shareReport() {
   if (shareButton) shareButton.disabled = true;
 
   try {
+    await flushPendingAutosave();
     const patient = selectedPatient();
     if (!patient) return;
     const pdfBytes = await buildReportPdf(patient);
