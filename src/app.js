@@ -758,6 +758,8 @@ async function buildReportPdf(patient) {
   const imageIds = images.map((image, index) => pdf.addImage(`Im${index + 1}`, image.bytes, image.width, image.height));
   const imageHeight = images.length <= 3 ? 120 : 110;
   const imageX = page.width - page.margin - 150;
+  const findingX = page.margin;
+  const findingWidth = imageX - findingX - 20;
   let imageY = y;
 
   imageIds.forEach((imageId) => {
@@ -765,16 +767,31 @@ async function buildReportPdf(patient) {
     imageY -= imageHeight + 15;
   });
 
-  const findingX = page.margin;
   reportFields.forEach((field) => {
-    drawLabelValue(content, `${field}:`, patient.findings?.[field] || '', findingX, y, 15);
-    y -= 24;
+    const lineCount = drawWrappedLabelValue(
+      content,
+      `${field}:`,
+      patient.findings?.[field] || '',
+      findingX,
+      y,
+      15,
+      findingWidth,
+    );
+    y -= Math.max(24, lineCount * lineHeightForSize(15));
   });
 
   y -= 38;
-  drawLabelValue(content, 'Diagnosis:', patient.diagnosis || '', findingX, y, 15);
-  y -= 70;
-  drawLabelValue(content, 'Advice:', patient.advice || '', findingX, y, 15);
+  const diagnosisLineCount = drawWrappedLabelValue(
+    content,
+    'Diagnosis:',
+    patient.diagnosis || '',
+    findingX,
+    y,
+    15,
+    findingWidth,
+  );
+  y -= Math.max(70, diagnosisLineCount * lineHeightForSize(15) + 20);
+  drawWrappedLabelValue(content, 'Advice:', patient.advice || '', findingX, y, 15, findingWidth);
 
   const footerX = page.width - page.margin - 150;
   drawCenteredTextInBox(content, 'Dr. S. K. Jethaliya', footerX, page.margin + 28, 15, 'F1', 150);
@@ -836,6 +853,24 @@ function drawCenteredTextInBox(commands, text, x, y, size, font, width) {
 function drawLabelValue(commands, label, value, x, y, size) {
   drawText(commands, label, x, y, size, 'F2');
   drawText(commands, value, x + estimateTextWidth(label, size) + 4, y, size, 'F1');
+}
+
+function drawWrappedLabelValue(commands, label, value, x, y, size, maxWidth) {
+  const labelWidth = estimateTextWidth(label, size);
+  const firstLineWidth = Math.max(0, maxWidth - labelWidth - 4);
+  const lines = wrapTextToLineWidths(value, size, [firstLineWidth, maxWidth]);
+  const lineHeight = lineHeightForSize(size);
+
+  drawText(commands, label, x, y, size, 'F2');
+  if (lines[0]) {
+    drawText(commands, lines[0], x + labelWidth + 4, y, size, 'F1');
+  }
+
+  lines.slice(1).forEach((line, index) => {
+    if (line) drawText(commands, line, x, y - (index + 1) * lineHeight, size, 'F1');
+  });
+
+  return Math.max(1, lines.length);
 }
 
 function drawImage(commands, name, x, y, width, height) {
@@ -927,6 +962,67 @@ function sanitizeFilename(value) {
 
 function estimateTextWidth(text, size) {
   return String(text).length * size * 0.45;
+}
+
+function lineHeightForSize(size) {
+  return Math.ceil(size * 1.35);
+}
+
+function wrapTextToLineWidths(text, size, lineWidths) {
+  const words = String(text).trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+
+  const lines = [];
+  let currentLine = '';
+  let lineIndex = 0;
+
+  words.forEach((word) => {
+    let pending = word;
+
+    while (pending) {
+      const maxWidth = lineWidths[Math.min(lineIndex, lineWidths.length - 1)];
+      if (maxWidth <= 0) {
+        lines.push(currentLine);
+        currentLine = '';
+        lineIndex += 1;
+        continue;
+      }
+
+      const candidate = currentLine ? `${currentLine} ${pending}` : pending;
+      if (estimateTextWidth(candidate, size) <= maxWidth) {
+        currentLine = candidate;
+        pending = '';
+        continue;
+      }
+
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = '';
+        lineIndex += 1;
+        continue;
+      }
+
+      currentLine = takeTextToWidth(pending, size, maxWidth);
+      pending = pending.slice(currentLine.length);
+      if (pending) {
+        lines.push(currentLine);
+        currentLine = '';
+        lineIndex += 1;
+      }
+    }
+  });
+
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+function takeTextToWidth(text, size, maxWidth) {
+  let output = '';
+  for (const character of text) {
+    if (output && estimateTextWidth(`${output}${character}`, size) > maxWidth) break;
+    output += character;
+  }
+  return output || text.slice(0, 1);
 }
 
 function escapePdfText(value = '') {
