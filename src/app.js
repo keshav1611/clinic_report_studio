@@ -1177,6 +1177,12 @@ function patientAgeLabel(patient) {
   return patient.age ? `${patient.age} years` : 'Age not set';
 }
 
+function reportAgeValue(patient) {
+  const age = patient.age?.trim();
+  if (!age) return '';
+  return /\byears?\b/i.test(age) ? age : `${age} years`;
+}
+
 function displayPatientName(patient) {
   return patient.name || 'New Patient';
 }
@@ -1184,7 +1190,7 @@ function displayPatientName(patient) {
 function reportLeftDetails(patient) {
   return [
     { label: "Patient's name:", value: patient.name },
-    { label: "Patient's age:", value: patient.age },
+    { label: "Patient's age:", value: reportAgeValue(patient) },
     { label: "Patient's address:", value: patient.address },
   ].filter(({ value }) => Boolean(value?.trim()));
 }
